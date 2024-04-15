@@ -1,0 +1,75 @@
+{
+    "title": "State updated",
+    "entity_component": {
+        "_": {
+            "name": "State updated",
+            "state_attributes": {
+                "new_value": {
+                    "name": "New value"
+                },
+                "old_value": {
+                    "name": "Old value"
+                }
+            }
+        }
+    },
+    "config": {
+        "abort": {
+            "already_configured": "Device is already configured"
+        },
+        "error": {
+            "missing_selection": "Nothing selected",
+            "unknown": "Unexpected error"
+        },
+        "step": {
+            "user": {
+                "title": "State updated helper",
+                "description": "The state updated helper allows you to create a binary sensor which show if a state or a state attribute from another entity has changed. New and old values are availible until marked as not changed",
+                "data": {
+                    "name": "Name. If empty, entity id name are used",
+                    "entity_id": "Entity that this sensor tracks"
+                }
+            },
+            "user_ekstra": {
+                "title": "State updated helper",
+                "data": {
+                    "attribute": "Attribute of entity that this sensor tracks",
+                    "icon": "Icon",
+                    "clear_update_after_hours": "Clear updated after",
+                    "text_template": "Defines a template to create the text attribute. Values = new_value, old_value, entity_id, attribute and last_updated",
+                    "default_text_template": "Entity {{ entity_id }} state changed from {{ old_value }} from {{ new_value }}."
+                }
+            }
+        }
+    },
+    "options": {
+        "abort": {
+            "already_configured": "Device is already configured"
+        },
+        "error": {
+            "missing_selection": "Nothing selected",
+            "unknown": "Unexpected error"
+        },
+        "step": {
+            "init": {
+                "data": {
+                    "attribute": "Attribute of entity that this sensor tracks",
+                    "icon": "Icon",
+                    "clear_update_after_hours": "Clear updates after",
+                    "text_template": "Defines a template to create the text attribute. Values = new_value, old_value, entity_id, attribute and last_updated",
+                    "default_text_template": "Entity {{ entity_id }} state changed from {{ old_value }} from {{ new_value }}."
+                }
+            }
+        }
+    },
+    "services": {
+        "reset_entity": {
+            "description": "Reset chosen state updated entity.",
+            "name": "Reset entity"
+        },
+        "reset_all": {
+            "description": "Reset all state updated entiteties.",
+            "name": "Reset all"
+        }
+    }
+}
