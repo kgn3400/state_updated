@@ -2,7 +2,15 @@
     "title": "State updated",
     "entity_component": {
         "_": {
-            "name": "State updated"
+            "name": "State updated",
+            "state_attributes": {
+                "new_value": {
+                    "name": "New value"
+                },
+                "old_value": {
+                    "name": "Old value"
+                }
+            }
         }
     },
     "config": {
@@ -11,7 +19,6 @@
         },
         "error": {
             "missing_selection": "Nothing selected",
-            "missing_pypi_package": "Pypi package does not exist",
             "unknown": "Unexpected error"
         },
         "step": {
@@ -41,7 +48,6 @@
         },
         "error": {
             "missing_selection": "Nothing selected",
-            "missing_pypi_package": "Pypi package does not exist",
             "unknown": "Unexpected error"
         },
         "step": {

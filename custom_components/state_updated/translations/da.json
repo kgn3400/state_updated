@@ -2,7 +2,15 @@
     "title": "Tilstand opdateret",
     "entity_component": {
         "_": {
-            "name": "Tilstand opdateret"
+            "name": "Tilstand opdateret",
+            "state_attributes": {
+                "new_value": {
+                    "name": "Ny tilstand"
+                },
+                "old_value": {
+                    "name": "Gammel tilstand"
+                }
+            }
         }
     },
     "config": {
