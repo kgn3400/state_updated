@@ -37,6 +37,8 @@ from .const import (
     CONF_LAST_UPDATED,
     CONF_NEW_VALUE,
     CONF_OLD_VALUE,
+    CONF_SKIP_UNAVAILABLE,
+    CONF_SKIP_UNKNOWN,
     DOMAIN,
     DOMAIN_NAME,
     LOGGER,
@@ -130,6 +132,16 @@ class StateUpdatedBinarySensor(BinarySensorEntity):
             """Handle state changes on the observed device."""
             if (tmp_state := event.data["new_state"]) is None:
                 return
+
+            if (
+                self.entry.options.get(CONF_SKIP_UNKNOWN, False)
+                and tmp_state.state == STATE_UNKNOWN
+            ) or (
+                self.entry.options.get(CONF_SKIP_UNAVAILABLE, False)
+                and tmp_state.state == STATE_UNAVAILABLE
+            ):
+                return
+
             try:
                 if CONF_ATTRIBUTE in self.entry.options:
                     new_value = tmp_state.attributes.get(
@@ -203,6 +215,8 @@ class StateUpdatedBinarySensor(BinarySensorEntity):
             self.entity_icon = await self.async_get_icon(
                 self.entry.options.get(CONF_ENTITY_ID)
             )
+
+        self.component_api.set_point_in_time_trigger(self)
 
     # ------------------------------------------------------------------
     async def async_create_issue_entity(
@@ -289,10 +303,13 @@ class StateUpdatedBinarySensor(BinarySensorEntity):
 
         """
 
+        if self.component_api is None:
+            return {}
+
         return {
             CONF_NEW_VALUE: self.component_api.new_value,
             CONF_OLD_VALUE: self.component_api.old_value,
-            CONF_LAST_UPDATED: self.component_api.last_updated.isoformat(),
+            CONF_LAST_UPDATED: self.component_api.last_updated,  # .isoformat(),
             "text": self.component_api.text,
         }
 

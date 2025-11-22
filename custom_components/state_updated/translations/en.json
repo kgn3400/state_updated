@@ -10,7 +10,7 @@
       "already_configured": "Device is already configured"
     },
     "error": {
-      "missing_selection": "Nothing selected",
+      "error_duration": "Duration should at least be 10 seconds for clearing update",
       "unknown": "Unexpected error"
     },
     "step": {
@@ -28,9 +28,13 @@
           "attribute": "Attribute of entity that this sensor tracks",
           "icon": "Icon",
           "device_id": "Select a device to link this entity",
+          "clear_update_after_duration": "Clear updated after",
           "clear_update_after_hours": "Clear updated after",
           "text_template": "Defines a template to create the text attribute. Values = new_value, old_value, entity_id, attribute and last_updated",
-          "default_text_template": "Entity {{ entity_id }} state changed from {{ old_value }} from {{ new_value }}."
+          "default_text_template": "Entity {{ entity_id }} state changed from {{ old_value }} from {{ new_value }}.",
+          "restore_state_after_restart": "Restore state after restart",
+          "skip_unknown": "Skip unknown state",
+          "skip_unavailable": "Skip unavailable state"
         }
       }
     }
@@ -40,7 +44,7 @@
       "already_configured": "Device is already configured"
     },
     "error": {
-      "missing_selection": "Nothing selected",
+      "error_duration": "Duration should at least be 10 seconds for clearing update",
       "unknown": "Unexpected error"
     },
     "step": {
@@ -49,9 +53,13 @@
           "attribute": "Attribute of entity that this sensor tracks",
           "icon": "Icon",
           "device_id": "Select a device to link this entity",
+          "clear_update_after_duration": "Clear updated after",
           "clear_update_after_hours": "Clear updates after",
           "text_template": "Defines a template to create the text attribute. Values = new_value, old_value, entity_id, attribute and last_updated",
-          "default_text_template": "Entity {{ entity_id }} state changed from {{ old_value }} from {{ new_value }}."
+          "default_text_template": "Entity {{ entity_id }} state changed from {{ old_value }} from {{ new_value }}.",
+          "restore_state_after_restart": "Restore state after restart(Beta)",
+          "skip_unknown": "Skip unknown state",
+          "skip_unavailable": "Skip unavailable state"
         }
       }
     }

@@ -3,6 +3,7 @@
 from datetime import UTC, datetime, timedelta
 from typing import Any
 
+from homeassistant.components.sensor import Entity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import (
     CONF_ATTRIBUTE,
@@ -10,7 +11,7 @@ from homeassistant.const import (
     STATE_UNAVAILABLE,
     STATE_UNKNOWN,
 )
-from homeassistant.core import HomeAssistant
+from homeassistant.core import HomeAssistant, State
 from homeassistant.exceptions import HomeAssistantError, TemplateError
 from homeassistant.helpers import issue_registry as ir
 from homeassistant.helpers.entity import get_unit_of_measurement
@@ -18,16 +19,20 @@ from homeassistant.helpers.template import Template
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 
 from .const import (
+    CONF_CLEAR_UPDATES_AFTER_DURATION,
     CONF_CLEAR_UPDATES_AFTER_HOURS,
     CONF_LAST_UPDATED,
     CONF_NEW_VALUE,
     CONF_OLD_VALUE,
+    CONF_RESTORE_STATE_AFTER_RESTART,
+    CONF_TEXT,
     CONF_TEXT_TEMPLATE,
     CONF_UPDATED,
     DOMAIN,
     DOMAIN_NAME,
     TRANSLATION_KEY_MISSING_ENTITY,
 )
+from .hass_util import PointInUTCTimeTrigger, set_supress_config_update_listener
 
 
 # ------------------------------------------------------------------
@@ -45,19 +50,96 @@ class ComponentApi:
         self.hass = hass
         self.entry: ConfigEntry = entry
         self.coordinator: DataUpdateCoordinator
-
-        self.updated: bool = entry.options.get(CONF_UPDATED, False)
-        self.last_updated: datetime = datetime.fromisoformat(
-            entry.options.get(CONF_LAST_UPDATED, datetime.now(UTC).isoformat)
+        self.updated: bool = False
+        self.last_updated: datetime = datetime.now(UTC).isoformat()
+        self.text: str = ""
+        self.new_value: Any = ""
+        self.old_value: Any = ""
+        self.duration = timedelta(
+            **(
+                self.entry.options.get(
+                    CONF_CLEAR_UPDATES_AFTER_DURATION,
+                    {
+                        "hours": 25,
+                        "minutes": 0,
+                        "seconds": 0,
+                    },
+                )
+            )
         )
 
         self.uom: str = self.get_uom()
-        self.text: str = ""
-        self.supress_update_listener: bool = False
+        self.point_in_time_trigger: PointInUTCTimeTrigger = None
 
-        self.new_value: Any = entry.options.get(CONF_NEW_VALUE, "")
-        self.old_value: Any = entry.options.get(CONF_OLD_VALUE, "")
-        self.create_text_from_template()
+        # if entry.options.get(CONF_RESTORE_STATE_AFTER_RESTART, False):
+        #     self.updated: bool = entry.options.get(CONF_UPDATED, False)
+        # self.last_updated: datetime = datetime.fromisoformat(
+        #     entry.options.get(CONF_LAST_UPDATED, datetime.now(UTC).isoformat)
+        # )
+        #     self.text: str = entry.options.get(CONF_TEXT, "")
+        #     self.new_value: Any = entry.options.get(CONF_NEW_VALUE, "")
+        #     self.old_value: Any = entry.options.get(CONF_OLD_VALUE, "")
+        #     self.create_text_from_template()
+
+    # ------------------------------------------------------------------
+    def set_point_in_time_trigger(self, entity: Entity) -> None:
+        """Set point in time trigger."""
+
+        self.point_in_time_trigger = PointInUTCTimeTrigger(
+            entity,
+            callback_trigger=self.async_clear_updated,
+        )
+
+        # Check if state has to be restored
+        if self.entry.options.get(CONF_RESTORE_STATE_AFTER_RESTART, False):
+            state: State = self.hass.states.get(self.entry.options[CONF_ENTITY_ID])
+
+            if not state:
+                return
+
+            if CONF_ATTRIBUTE in self.entry.options:
+                self.new_value = state.attributes.get(
+                    self.entry.options[CONF_ATTRIBUTE]
+                )
+            else:
+                self.new_value = state.state
+
+            if self.new_value != self.entry.options.get(CONF_NEW_VALUE, ""):
+                return
+
+            # if the state has been updated and we have a duration and the last updated time is in the future, start the
+
+            self.last_updated: datetime = datetime.fromisoformat(
+                self.entry.options.get(CONF_LAST_UPDATED, datetime.now(UTC).isoformat)
+            )
+
+            if (
+                self.entry.options.get(CONF_UPDATED, False)
+                and self.last_updated is not None
+                and self.duration is not None
+                and (self.last_updated + self.duration) > datetime.now(UTC)
+            ):
+                self.point_in_time_trigger.start(
+                    point_in_time_UTC=self.last_updated + self.duration
+                )
+                self.updated: bool = self.entry.options.get(CONF_UPDATED, False)
+                self.last_updated: datetime = datetime.fromisoformat(
+                    self.entry.options.get(
+                        CONF_LAST_UPDATED, datetime.now(UTC).isoformat
+                    )
+                )
+                self.text: str = self.entry.options.get(CONF_TEXT, "")
+                self.new_value: Any = self.entry.options.get(CONF_NEW_VALUE, "")
+                self.old_value: Any = self.entry.options.get(CONF_OLD_VALUE, "")
+                self.create_text_from_template()
+            else:
+                self.updated = False
+                self.last_updated = datetime.now(UTC)
+                self.text = ""
+                self.new_value = ""
+                self.old_value = ""
+
+            self.update_config()
 
     # ------------------------------------------------------------------
     async def async_reset(self) -> None:
@@ -90,10 +172,12 @@ class ComponentApi:
             self.create_text_from_template()
 
             self.update_config()
+            self.point_in_time_trigger.start(duration=self.duration)
 
         self.uom = self.get_uom()
 
     # ------------------------------------------------------------------
+    @set_supress_config_update_listener()
     def update_config(self) -> None:
         """Update config."""
 
@@ -101,18 +185,30 @@ class ComponentApi:
         tmp_options[CONF_NEW_VALUE] = self.new_value
         tmp_options[CONF_OLD_VALUE] = self.old_value
         tmp_options[CONF_UPDATED] = self.updated
+        tmp_options[CONF_TEXT] = self.text
         tmp_options[CONF_LAST_UPDATED] = self.last_updated.isoformat()
-
-        self.supress_update_listener = True
 
         self.hass.config_entries.async_update_entry(
             self.entry, data=tmp_options, options=tmp_options
         )
 
     # ------------------------------------------------------------------
+    async def async_clear_updated(self) -> None:
+        """Update."""
+
+        self.updated = False
+        self.text = ""
+        self.new_value = ""
+        self.old_value = ""
+
+        self.update_config()
+        await self.coordinator.async_refresh()
+
+    # ------------------------------------------------------------------
     async def async_update(self) -> None:
         """Update."""
 
+        return
         if self.updated and (
             self.last_updated
             + timedelta(hours=self.entry.options[CONF_CLEAR_UPDATES_AFTER_HOURS])

@@ -10,7 +10,7 @@
       "already_configured": "Enhed er allerede konfigureret"
     },
     "error": {
-      "missing_selection": "Intet valgt",
+      "error_duration": "Varighed skal mindst være 10 sekunder for nulstilling af opdatering",
       "unknown": "Uventet fejl"
     },
     "step": {
@@ -28,9 +28,13 @@
           "attribute": "Entitets attribut for entitet som spores",
           "icon": "Ikon",
           "device_id": "Vælg den enhed, der skal linkes til denne entitet",
+          "clear_update_after_duration": "Nulstil opdatering efter",
           "clear_update_after_hours": "Nulstil opdatering efter",
           "text_template": "Definerer en skabelon til at danne tekst attributen. Værdier = new_value, old_value, entity_id, attribute og last_updated",
-          "default_text_template": "Entitet {{ entity_id }} tilstand er ændret fra {{ old_value }} til {{ new_value }}."
+          "default_text_template": "Entitet {{ entity_id }} tilstand er ændret fra {{ old_value }} til {{ new_value }}.",
+          "restore_state_after_restart": "Genskab tilstand efter at genstart",
+          "skip_unknown": "Skip ukendt tilstand",
+          "skip_unavailable": "Skip ikke tilgængelig tilstand"
         }
       }
     }
@@ -40,7 +44,7 @@
       "already_configured": "Enhed er allerede konfigureret"
     },
     "error": {
-      "missing_selection": "Intet valgt",
+      "error_duration": "Varighed skal mindst være 10 sekunder for nulstilling af opdatering",
       "unknown": "Uventet fejl"
     },
     "step": {
@@ -49,9 +53,13 @@
           "attribute": "Entitets attribut for entitet som spores",
           "icon": "Ikon",
           "device_id": "Vælg den enhed, der skal linkes til denne entitet",
+          "clear_update_after_duration": "Nulstil opdatering efter",
           "clear_update_after_hours": "Nulstil opdatering efter",
           "text_template": "Definerer en skabelon til at danne tekst attributen. Værdier = new_value, old_value, entity_id, attribute og last_updated",
-          "default_text_template": "Entitet {{ entity_id }} tilstand er ændret fra {{ old_value }} til {{ new_value }}."
+          "default_text_template": "Entitet {{ entity_id }} tilstand er ændret fra {{ old_value }} til {{ new_value }}.",
+          "restore_state_after_restart": "Genskab tilstand efter at genstart(Beta)",
+          "skip_unknown": "Skip ukendt tilstand",
+          "skip_unavailable": "Skip ikke tilgængelig tilstand"
         }
       }
     }

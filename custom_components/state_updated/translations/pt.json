@@ -10,7 +10,7 @@
       "already_configured": "Dispositivo já configurado"
     },
     "error": {
-      "missing_selection": "Nada selecionado",
+      "error_duration": "A duração deve ser de no mínimo 10 segundos para concluir a atualização",
       "unknown": "Erro desconhecido"
     },
     "step": {
@@ -28,9 +28,13 @@
           "attribute": "Atributo da entidade que este sensor rastreia",
           "icon": "Ícone",
           "device_id": "Selecione um dispositivo para vincular esta entidade",
+          "clear_update_after_duration": "Limpar atualizações após",
           "clear_update_after_hours": "Limpar atualizações após",
           "text_template": "Define um modelo para criar o atributo de texto. Valores = new_value, old_value, entity_id, attribute e last_updated",
-          "default_text_template": "Estado da Entidade {{ entity_id }} alterado de {{ old_value }} para {{ new_value }}."
+          "default_text_template": "Estado da Entidade {{ entity_id }} alterado de {{ old_value }} para {{ new_value }}.",
+          "restore_state_after_restart": "Restaurar estado após reinício(Beta)",
+          "skip_unknown": "Ignorar estado desconhecido",
+          "skip_unavailable": "Ignorar estado indisponível"
         }
       }
     }
@@ -40,7 +44,7 @@
       "already_configured": "Dispositivo já configurado"
     },
     "error": {
-      "missing_selection": "Nada selecionado",
+      "error_duration": "A duração deve ser de no mínimo 10 segundos para concluir a atualização",
       "unknown": "Erro desconhecido"
     },
     "step": {
@@ -49,9 +53,13 @@
           "attribute": "Atributo da entidade que este sensor rastreia",
           "icon": "Ícone",
           "device_id": "Selecione um dispositivo para vincular esta entidade",
+          "clear_update_after_duration": "Limpar atualizações após",
           "clear_update_after_hours": "Limpar atualizações após",
           "text_template": "Define um modelo para criar o atributo de texto. Valores = new_value, old_value, entity_id, attribute e last_updated",
-          "default_text_template": "Estado da Entidade {{ entity_id }} alterado de {{ old_value }} para {{ new_value }}."
+          "default_text_template": "Estado da Entidade {{ entity_id }} alterado de {{ old_value }} para {{ new_value }}.",
+          "restore_state_after_restart": "Restaurar estado após reinício(Beta",
+          "skip_unknown": "Ignorar estado desconhecido",
+          "skip_unavailable": "Ignorar estado indisponível"
         }
       }
     }
