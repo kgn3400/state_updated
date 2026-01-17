@@ -51,7 +51,7 @@ class ComponentApi:
         self.entry: ConfigEntry = entry
         self.coordinator: DataUpdateCoordinator
         self.updated: bool = False
-        self.last_updated: datetime = datetime.now(UTC).isoformat()
+        self.last_updated: datetime = datetime.now(UTC)
         self.text: str = ""
         self.new_value: Any = ""
         self.old_value: Any = ""
