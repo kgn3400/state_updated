@@ -1,9 +1,7 @@
 """Config flow for State updated integration."""
 
-from __future__ import annotations
-
 from collections.abc import Mapping
-from datetime import UTC, datetime, timedelta
+from datetime import timedelta
 from typing import Any, cast
 
 import voluptuous as vol
@@ -25,6 +23,7 @@ from homeassistant.helpers.schema_config_entry_flow import (
     SchemaFlowFormStep,
     SchemaFlowMenuStep,
 )
+
 from homeassistant.helpers.selector import (
     BooleanSelector,
     DurationSelector,
@@ -32,6 +31,8 @@ from homeassistant.helpers.selector import (
     IconSelector,
     TemplateSelector,
 )
+
+from homeassistant.util.dt import utcnow
 
 from .const import (
     CONF_CLEAR_UPDATES_AFTER_DURATION,
@@ -162,7 +163,7 @@ OPTIONS_FLOW: dict[str, SchemaFlowFormStep | SchemaFlowMenuStep] = {
 class ConfigFlowHandler(SchemaConfigFlowHandler, domain=DOMAIN):
     """Handle a config or options flow."""
 
-    VERSION = 2
+    VERSION = 3
     config_flow = CONFIG_FLOW
     options_flow = OPTIONS_FLOW
 
@@ -191,7 +192,7 @@ class ConfigFlowHandler(SchemaConfigFlowHandler, domain=DOMAIN):
         )
 
         options[CONF_UPDATED] = False
-        options[CONF_LAST_UPDATED] = datetime.now(UTC).isoformat()
+        options[CONF_LAST_UPDATED] = utcnow().isoformat()
 
     # ------------------------------------------------------------------
     def get_current_state(self, user_input: dict[str, Any]) -> Any:

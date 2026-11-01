@@ -16,7 +16,7 @@ _SUPRESS_CONFIG_UPDATE_LISTENER = "_supress_config_update_listener"
 def set_supress_config_update_listener(
     func=None,
 ):
-    """Decorator to set config update listener should be supressed."""  # noqa: D401
+    """Decorator to set config update listener should be supressed."""
 
     if func is None:
         return partial(set_supress_config_update_listener)
@@ -48,7 +48,7 @@ def check_supress_config_update_listener(
     *,
     object_name: str = "component_api",
 ):
-    """Decorator to handle if config update listener should be supressed."""  # noqa: D401
+    """Decorator to handle if config update listener should be supressed."""
 
     if func is None:
         return partial(

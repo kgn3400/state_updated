@@ -1,8 +1,8 @@
 """Enum extended."""
 
 from enum import Enum
-from functools import partial, total_ordering
-from typing import overload
+from functools import total_ordering
+from typing import Self, overload
 
 
 # ------------------------------------------------------
@@ -12,29 +12,24 @@ class EnumExt(Enum):
     """Enum extended."""
 
     # ------------------------------------------------------
-    def __lt__(self, other):
+    def __lt__(self, other: Self | int) -> bool:
         """Lower than."""
         try:
-            if type(self.value) is int and type(other.value) is int:
+            if isinstance(self.value, int) and isinstance(other.value, int):
                 return self.value < other.value
 
-            members = list(self.__class__)
-            self_index = members.index(self)
-            other_index = members.index(other)
-
-            return self_index < other_index  # noqa: TRY300
+            cls_members = self.__class__._member_names_
+            return cls_members.index(self.name) < cls_members.index(other.name)
 
         except AttributeError:
             return self.value < other
 
     # ------------------------------------------------------
-    def __eq__(self, other) -> bool:
+    def __eq__(self, other: object) -> bool:
         """Equal."""
-        try:
+        if isinstance(other, Enum):
             return self.value == other.value
-
-        except AttributeError:
-            return self.value == other
+        return self.value == other
 
     # ------------------------------------------------------
     def __str__(self):
@@ -44,26 +39,26 @@ class EnumExt(Enum):
     # ------------------------------------------------------
     @overload
     @classmethod
-    def range(cls) -> list[Enum]: ...
+    def range(cls) -> list[Self]: ...
 
     # ------------------------------------------------------
     @overload
     @classmethod
-    def range(cls, *, start: Enum) -> list[Enum]: ...
+    def range(cls, *, start: Self) -> list[Self]: ...
 
     # ------------------------------------------------------
     @overload
     @classmethod
-    def range(cls, stop: Enum, incl_stop: bool = False) -> list[Enum]: ...
+    def range(cls, stop: Self, incl_stop: bool = False) -> list[Self]: ...
 
     # ------------------------------------------------------
     @overload
     @classmethod
-    def range(cls, start: Enum, stop: Enum, incl_stop: bool = False) -> list[Enum]: ...
+    def range(cls, start: Self, stop: Self, incl_stop: bool = False) -> list[Self]: ...
 
     # ------------------------------------------------------
     @classmethod
-    def range(cls, *args, **kwargs) -> list[Enum]:
+    def range(cls, *args, **kwargs) -> list[Self]:
         """range().
 
         or
@@ -82,79 +77,71 @@ class EnumExt(Enum):
             list[Enum]
 
         """  # noqa: D402
+        members = list(cls)
+        if not members:
+            return []
 
-        def range_func(
-            start_stop=None, stop=None, incl_stop: bool = False, **kwargs
-        ) -> list[Enum]:
-            if start_stop is None and stop is None and len(kwargs) == 0:
-                return list(cls)
+        start = kwargs.get("start", args[0] if len(args) > 0 else members[0])
 
-            members = list(cls)
+        if len(args) == 1 and "start" not in kwargs:
+            stop = args[0]
+            start = members[0]
+        else:
+            stop = kwargs.get("stop", args[1] if len(args) > 1 else members[-1])
 
-            if (
-                len(kwargs) == 1
-                and start_stop is None
-                and stop is None
-                and "start" in kwargs
-            ):
-                index_start = members.index(kwargs["start"])
-                index_stop = len(members)
-            else:
-                if start_stop is None and len(kwargs) == 1 and "start" in kwargs:
-                    start_stop = kwargs["start"]
-                if start_stop is None:
-                    start_stop = members[0]
-                if stop is None:
-                    stop = start_stop
-                    start_stop = members[0]
+        has_explicit_stop = (
+            (len(args) == 1 and "start" not in kwargs)
+            or len(args) > 1
+            or "stop" in kwargs
+        )
+        default_incl = not has_explicit_stop
 
-                index_start = members.index(start_stop)
-                index_stop = (
-                    members.index(stop) if not incl_stop else members.index(stop) + 1
-                )
+        incl_stop = kwargs.get("incl_stop", args[2] if len(args) > 2 else default_incl)
 
-            if index_start >= index_stop:
-                raise IndexError("start_stop must be less than stop")
+        try:
+            index_start = members.index(start)
+            index_stop = members.index(stop) + (1 if incl_stop else 0)
+        except ValueError as err:
+            raise ValueError("Start- or stop-parameterdoes not exist") from err
 
-            return list(members[index_start:index_stop])
+        if index_start > index_stop:
+            raise IndexError("start_stop must be less than stop")
 
-        return (partial(range_func, *args, **kwargs))()
+        return members[index_start:index_stop]
 
     # ------------------------------------------------------
-    def succ(self, cycle: bool = False):
+    def succ(self, cycle: bool = False) -> Self:
         """Succ."""
         members = list(self.__class__)
         index = members.index(self) + 1
 
         if index >= len(members):
             if cycle:
-                index = 0
-            else:
-                raise StopIteration("end of enumeration reached")
+                return members[0]
+            raise StopIteration("end of enumeration reached")
 
         return members[index]
 
     # ------------------------------------------------------
     @property
-    def next(self):
+    def next(self) -> Self:
         """Next."""
         return self.succ()
 
     # ------------------------------------------------------
-    def pred(self, cycle: bool = False):
+    def pred(self, cycle: bool = False) -> Self:
         """Pred."""
         members = list(self.__class__)
         index = members.index(self) - 1
         if index < 0:
             if cycle:
-                index = len(members) - 1
-            else:
-                raise StopIteration("beginning of enumeration reached")
+                return members[-1]
+            raise StopIteration("beginning of enumeration reached")
 
         return members[index]
 
     # ------------------------------------------------------
     @property
-    def prev(self):
+    def prev(self) -> Self:
         """Prev."""
         return self.pred()

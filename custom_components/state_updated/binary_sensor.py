@@ -1,15 +1,12 @@
 """Support for State updated."""
 
-from __future__ import annotations
-
-from datetime import datetime
+# from datetime import datetime
 
 from homeassistant.components.binary_sensor import BinarySensorEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import (
     ATTR_ICON,
     CONF_ATTRIBUTE,
-    CONF_DEVICE_ID,
     CONF_ENTITY_ID,
     CONF_ICON,
     STATE_UNAVAILABLE,
@@ -23,13 +20,18 @@ from homeassistant.helpers import (
     issue_registry as ir,
     start,
 )
-from homeassistant.helpers.device import async_device_info_to_link_from_device_id
+from homeassistant.helpers.device import (
+    # async_device_info_to_link_from_device_id,
+    async_entity_id_to_device,
+    # async_entity_id_to_device_id,
+)
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.event import (
     EventStateChangedData,
     async_track_state_change_event,
 )
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
+from homeassistant.util.dt import naive_now
 
 from . import CommonConfigEntry
 from .component_api import ComponentApi
@@ -96,9 +98,9 @@ class StateUpdatedBinarySensor(BinarySensorEntity):
 
         self.entity_icon: str = None
 
-        self._attr_device_info = async_device_info_to_link_from_device_id(
+        self.device_entry = async_entity_id_to_device(
             hass,
-            entry.options.get(CONF_DEVICE_ID),
+            entry.options.get(CONF_ENTITY_ID),
         )
 
     # ------------------------------------------------------
@@ -227,7 +229,7 @@ class StateUpdatedBinarySensor(BinarySensorEntity):
         ir.async_create_issue(
             self.hass,
             DOMAIN,
-            DOMAIN_NAME + datetime.now().isoformat(),
+            DOMAIN_NAME + naive_now().isoformat(),
             issue_domain=DOMAIN,
             is_fixable=False,
             severity=ir.IssueSeverity.WARNING,

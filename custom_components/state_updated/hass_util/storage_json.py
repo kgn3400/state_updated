@@ -18,6 +18,8 @@ from homeassistant.helpers.storage import Store
 class StoreMigrate(Store):
     """When migration storage layout."""
 
+    DICT_KEY___ = "jsonpickle"
+
     custom_migrate_func: Callable[[int, int, Any], Any] | None = None
 
     # ------------------------------------------------------------------
@@ -30,14 +32,31 @@ class StoreMigrate(Store):
         """Migrate to the new version."""
 
         if self.custom_migrate_func is not None:
+            if type(old_data) is dict and self.DICT_KEY___ in old_data:
+                jsonpickle.set_encoder_options("json", ensure_ascii=False)
+                tmp_data = jsonpickle.decode(old_data[self.DICT_KEY___])  # noqa: S301
+
+                if inspect.iscoroutinefunction(self.custom_migrate_func):
+                    tmp_data = await self.custom_migrate_func(
+                        old_major_version, old_minor_version, tmp_data
+                    )
+                else:
+                    tmp_data = self.custom_migrate_func(
+                        old_major_version, old_minor_version, tmp_data
+                    )
+                old_data[self.DICT_KEY___] = jsonpickle.encode(tmp_data)
+
+                return old_data
+
             if inspect.iscoroutinefunction(self.custom_migrate_func):
-                return await self.custom_migrate_func(
+                old_data = await self.custom_migrate_func(
                     old_major_version, old_minor_version, old_data
                 )
 
-            return self.custom_migrate_func(
+            old_data = self.custom_migrate_func(
                 old_major_version, old_minor_version, old_data
             )
+
         return old_data
 
 
@@ -105,11 +124,14 @@ class StorageJson:
     # ------------------------------------------------------------------
     def decode_data(self, data: Any):
         """Decode data."""
-        return jsonpickle.decode(data)
+        return jsonpickle.decode(data)  # noqa: S301
 
     # ------------------------------------------------------------------
-    async def async_write_settings(self, extra_data: dict = {}) -> None:
+    async def async_write_settings(self, extra_data: dict | None = None) -> None:
         """Write settings."""
+
+        if extra_data is None:
+            extra_data = {}
 
         jsonpickle.set_encoder_options("json", ensure_ascii=False)
 
@@ -135,13 +157,16 @@ class StorageJson:
     def __getstate__(self) -> dict:
         """Get state."""
         tmp_dict = self.__dict__.copy()
-        del tmp_dict["write_hidden_attributes___"]
-        del tmp_dict["hass___"]
-        del tmp_dict["store___"]
-        del tmp_dict["DICT_KEY___"]
-        del tmp_dict["base_class___"]
+        tmp_dict.pop("write_hidden_attributes___", None)
+        tmp_dict.pop("hass___", None)
+        tmp_dict.pop("store___", None)
+        tmp_dict.pop("DICT_KEY___", None)
+        tmp_dict.pop("base_class___", None)
 
-        if self.write_hidden_attributes___ is False:
+        if "write_hidden_attributes___" not in tmp_dict or (
+            "write_hidden_attributes___" in tmp_dict
+            and self.write_hidden_attributes___ is False
+        ):
             try:
 
                 def remove_hidden_attrib(obj) -> None:

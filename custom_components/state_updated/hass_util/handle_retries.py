@@ -56,7 +56,7 @@ class HandleRetries:
         raise_original_exception: bool = True,
         retry_on_exceptions: list | None = None,
         stop_on_exceptions: list | None = None,
-    ):
+    ) -> None:
         """Init.
 
         Args:
@@ -78,164 +78,261 @@ class HandleRetries:
         self.func_self = None
 
     # ------------------------------------------------------
-    def __call__(self, func):
-        """__call__.
+    # def __call__(self, func):
+    #     """__call__.
 
-        Args:
-            func (_type_): _description_
+    #     Args:
+    #         func (_type_): _description_
 
-        Raises:
-            e: _description_
-            e: _description_
+    #     Raises:
+    #         e: _description_
+    #         e: _description_
 
-        Returns:
-            _type_: _description_
+    #     Returns:
+    #         _type_: _description_
 
-        """
+    #     """
 
-        # -------------------------
-        def decorator_wrap(func):
-            # -------------------------
-            def check_retry_on_exceptions(exp: Exception) -> bool:
-                """Check if the exception is in the retry_on_exceptions list."""
-                if self.retry_on_exceptions is None:
-                    return True
+    #     # -------------------------
+    #     def decorator_wrap(func):
+    #         # -------------------------
+    #         def check_retry_on_exceptions(exp: Exception) -> bool:
+    #             """Check if the exception is in the retry_on_exceptions list."""
+    #             if self.retry_on_exceptions is None:
+    #                 return True
 
-                if exp.__class__ in self.retry_on_exceptions:
-                    return True
+    #             if exp.__class__ in self.retry_on_exceptions:
+    #                 return True
 
+    #             return False
+
+    #         # -------------------------
+    #         def check_stop_on_exceptions(exp: Exception) -> bool:
+    #             """Check if the exception is in the stop_on_exceptions list."""
+    #             if self.stop_on_exceptions is None:
+    #                 return False
+
+    #             if exp.__class__ in self.stop_on_exceptions:
+    #                 return True
+
+    #             return False
+
+    #         # -------------------------
+    #         def check_exceptions(exp: Exception, attempt: int) -> None:
+    #             """Check exceptions."""
+
+    #             if exp.__class__ == RetryStopException:
+    #                 raise exp
+    #             if (
+    #                 not check_retry_on_exceptions(exp)
+    #                 or check_stop_on_exceptions(exp)
+    #                 or attempt == self.retries - 1
+    #             ):
+    #                 if self.raise_last_exception:
+    #                     if self.raise_original_exception:
+    #                         raise exp
+    #                     raise HandleRetriesException(
+    #                         f"Retry {attempt} failed for {func.__name__}"
+    #                     ) from exp
+
+    #         # -------------------------
+    #         def set_parms_dyn(parm_dict: dict) -> None:
+    #             """Set parameters dynamic."""
+
+    #             if "retries" in parm_dict:
+    #                 self.retries = parm_dict["retries"]
+    #             if "retry_delay" in parm_dict:
+    #                 self.retry_delay = parm_dict["retry_delay"]
+    #             if "raise_last_exception" in parm_dict:
+    #                 self.raise_last_exception = parm_dict["raise_last_exception"]
+    #             if "raise_original_exception" in parm_dict:
+    #                 self.raise_original_exception = parm_dict[
+    #                     "raise_original_exception"
+    #                 ]
+    #             if "retry_on_exceptions" in parm_dict:
+    #                 self.retry_on_exceptions = parm_dict["retry_on_exceptions"]
+    #             if "stop_on_exceptions" in parm_dict:
+    #                 self.stop_on_exceptions = parm_dict["stop_on_exceptions"]
+
+    #         # -------------------------
+    #         def check_for_dyn_parms(func) -> None:
+    #             """Check dynamic parameters."""
+
+    #             if func is None:
+    #                 return
+
+    #             if hasattr(func, "set_parms_dyn"):
+    #                 tmp_func = func.set_parms_dyn
+    #                 # tmp_func = getattr(func, "set_parms_dyn")
+    #                 tmp_return = tmp_func()
+
+    #                 if (
+    #                     tmp_return is not None
+    #                     and isinstance(tmp_return, dict)
+    #                     and len(tmp_return) > 0
+    #                 ):
+    #                     set_parms_dyn(tmp_return)
+
+    #         # -------------------------
+    #         async def async_check_for_dyn_parms(func) -> None:
+    #             """Check dynamic parameters."""
+
+    #             if func is None:
+    #                 return
+
+    #             if hasattr(func, "async_set_parms_dyn"):
+    #                 # tmp_func = getattr(func, "async_set_parms_dyn")
+    #                 tmp_func = func.async_set_parms_dyn
+
+    #                 if iscoroutinefunction(tmp_func):
+    #                     tmp_return = await tmp_func()
+
+    #                     if (
+    #                         tmp_return is not None
+    #                         and isinstance(tmp_return, dict)
+    #                         and len(tmp_return) > 0
+    #                     ):
+    #                         set_parms_dyn(tmp_return)
+    #                         return
+
+    #             check_for_dyn_parms(func)
+
+    #         # -------------------------
+    #         @wraps(func)
+    #         def wrapper(*args, **kwargs):
+    #             check_for_dyn_parms(self.func_self)
+
+    #             for attempt in range(self.retries):
+    #                 try:
+    #                     if self.func_self is None:
+    #                         return func(*args, **kwargs)
+    #                     return func(self.func_self, *args, **kwargs)
+    #                 except Exception as err:   noqa: BLE001
+    #                     check_exceptions(err, attempt)
+
+    #                 sleep(self.retry_delay)
+    #             return None
+
+    #         # -------------------------
+    #         @wraps(func)
+    #         async def async_wrapper(*args, **kwargs):
+    #             await async_check_for_dyn_parms(self.func_self)
+
+    #             for attempt in range(self.retries):
+    #                 try:
+    #                     if self.func_self is None:
+    #                         return await func(*args, **kwargs)
+    #                     return await func(self.func_self, *args, **kwargs)
+
+    #                 except Exception as err:   noqa: BLE001
+    #                     check_exceptions(err, attempt)
+    #                 await asyncio_sleep(self.retry_delay)
+    #             return None
+
+    #         # Check if the function is a coroutine function
+    #         if iscoroutinefunction(func):
+    #             return async_wrapper
+
+    #         return wrapper
+
+    #     return decorator_wrap(func)
+    def __call__(self, func: Callable):
+        """__call__ fungerer nu direkte som din decorator."""
+
+        def check_retry_on_exceptions(exp: Exception) -> bool:
+            """Check if the exception is in the retry_on_exceptions list."""
+            if self.retry_on_exceptions is None:
+                return True
+            return exp.__class__ in self.retry_on_exceptions
+
+        def check_stop_on_exceptions(exp: Exception) -> bool:
+            """Check if the exception is in the stop_on_exceptions list."""
+            if self.stop_on_exceptions is None:
                 return False
+            return exp.__class__ in self.stop_on_exceptions
 
-            # -------------------------
-            def check_stop_on_exceptions(exp: Exception) -> bool:
-                """Check if the exception is in the stop_on_exceptions list."""
-                if self.stop_on_exceptions is None:
-                    return False
+        def check_exceptions(exp: Exception, attempt: int) -> None:
+            """Check exceptions."""
+            if exp.__class__ == RetryStopException:
+                raise exp
+            if (
+                not check_retry_on_exceptions(exp)
+                or check_stop_on_exceptions(exp)
+                or attempt == self.retries - 1
+            ):
+                if self.raise_last_exception:
+                    if self.raise_original_exception:
+                        raise exp
+                    raise HandleRetriesException(
+                        f"Retry {attempt} failed for {func.__name__}"
+                    ) from exp
 
-                if exp.__class__ in self.stop_on_exceptions:
-                    return True
+        def set_parms_dyn(parm_dict: dict) -> None:
+            """Set parameters dynamic."""
+            if "retries" in parm_dict:
+                self.retries = parm_dict["retries"]
+            if "retry_delay" in parm_dict:
+                self.retry_delay = parm_dict["retry_delay"]
+            if "raise_last_exception" in parm_dict:
+                self.raise_last_exception = parm_dict["raise_last_exception"]
+            if "raise_original_exception" in parm_dict:
+                self.raise_original_exception = parm_dict["raise_original_exception"]
+            if "retry_on_exceptions" in parm_dict:
+                self.retry_on_exceptions = parm_dict["retry_on_exceptions"]
+            if "stop_on_exceptions" in parm_dict:
+                self.stop_on_exceptions = parm_dict["stop_on_exceptions"]
 
-                return False
+        def check_for_dyn_parms(func) -> None:
+            """Check dynamic parameters."""
+            if func is None:
+                return
+            if hasattr(func, "set_parms_dyn"):
+                tmp_func = func.set_parms_dyn
+                tmp_return = tmp_func()
+                if tmp_return and isinstance(tmp_return, dict):
+                    set_parms_dyn(tmp_return)
 
-            # -------------------------
-            def check_exceptions(exp: Exception, attempt: int) -> None:
-                """Check exceptions."""
-
-                if exp.__class__ == RetryStopException:
-                    raise exp
-                if (
-                    not check_retry_on_exceptions(exp)
-                    or check_stop_on_exceptions(exp)
-                    or attempt == self.retries - 1
-                ):
-                    if self.raise_last_exception:
-                        if self.raise_original_exception:
-                            raise exp
-                        raise HandleRetriesException(
-                            f"Retry {attempt} failed for {func.__name__}"
-                        ) from exp
-
-            # -------------------------
-            def set_parms_dyn(parm_dict: dict) -> None:
-                """Set parameters dynamic."""
-
-                if "retries" in parm_dict:
-                    self.retries = parm_dict["retries"]
-                if "retry_delay" in parm_dict:
-                    self.retry_delay = parm_dict["retry_delay"]
-                if "raise_last_exception" in parm_dict:
-                    self.raise_last_exception = parm_dict["raise_last_exception"]
-                if "raise_original_exception" in parm_dict:
-                    self.raise_original_exception = parm_dict[
-                        "raise_original_exception"
-                    ]
-                if "retry_on_exceptions" in parm_dict:
-                    self.retry_on_exceptions = parm_dict["retry_on_exceptions"]
-                if "stop_on_exceptions" in parm_dict:
-                    self.stop_on_exceptions = parm_dict["stop_on_exceptions"]
-
-            # -------------------------
-            def check_for_dyn_parms(func) -> None:
-                """Check dynamic parameters."""
-
-                if func is None:
-                    return
-
-                if hasattr(func, "set_parms_dyn"):
-                    tmp_func = func.set_parms_dyn
-                    # tmp_func = getattr(func, "set_parms_dyn")
-                    tmp_return = tmp_func()
-
-                    if (
-                        tmp_return is not None
-                        and isinstance(tmp_return, dict)
-                        and len(tmp_return) > 0
-                    ):
+        async def async_check_for_dyn_parms(func) -> None:
+            """Check dynamic parameters."""
+            if func is None:
+                return
+            if hasattr(func, "async_set_parms_dyn"):
+                tmp_func = func.async_set_parms_dyn
+                if iscoroutinefunction(tmp_func):
+                    tmp_return = await tmp_func()
+                    if tmp_return and isinstance(tmp_return, dict):
                         set_parms_dyn(tmp_return)
+                        return
+            check_for_dyn_parms(func)
 
-            # -------------------------
-            async def async_check_for_dyn_parms(func) -> None:
-                """Check dynamic parameters."""
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            check_for_dyn_parms(self.func_self)
+            for attempt in range(self.retries):
+                try:
+                    if self.func_self is None:
+                        return func(*args, **kwargs)
+                    return func(self.func_self, *args, **kwargs)
+                except Exception as err:  # noqa: BLE001
+                    check_exceptions(err, attempt)
+                sleep(self.retry_delay)
+            return None
 
-                if func is None:
-                    return
+        @wraps(func)
+        async def async_wrapper(*args, **kwargs):
+            await async_check_for_dyn_parms(self.func_self)
+            for attempt in range(self.retries):
+                try:
+                    if self.func_self is None:
+                        return await func(*args, **kwargs)
+                    return await func(self.func_self, *args, **kwargs)
+                except Exception as err:  # noqa: BLE001
+                    check_exceptions(err, attempt)
+                await asyncio_sleep(self.retry_delay)
+            return None
 
-                if hasattr(func, "async_set_parms_dyn"):
-                    # tmp_func = getattr(func, "async_set_parms_dyn")
-                    tmp_func = func.async_set_parms_dyn
-
-                    if iscoroutinefunction(tmp_func):
-                        tmp_return = await tmp_func()
-
-                        if (
-                            tmp_return is not None
-                            and isinstance(tmp_return, dict)
-                            and len(tmp_return) > 0
-                        ):
-                            set_parms_dyn(tmp_return)
-                            return
-
-                check_for_dyn_parms(func)
-
-            # -------------------------
-            @wraps(func)
-            def wrapper(*args, **kwargs):
-                check_for_dyn_parms(self.func_self)
-
-                for attempt in range(self.retries):
-                    try:
-                        if self.func_self is None:
-                            return func(*args, **kwargs)
-                        return func(self.func_self, *args, **kwargs)
-                    except Exception as err:  # noqa: BLE001
-                        check_exceptions(err, attempt)
-
-                    sleep(self.retry_delay)
-                return None
-
-            # -------------------------
-            @wraps(func)
-            async def async_wrapper(*args, **kwargs):
-                await async_check_for_dyn_parms(self.func_self)
-
-                for attempt in range(self.retries):
-                    try:
-                        if self.func_self is None:
-                            return await func(*args, **kwargs)
-                        return await func(self.func_self, *args, **kwargs)
-
-                    except Exception as err:  # noqa: BLE001
-                        check_exceptions(err, attempt)
-                    await asyncio_sleep(self.retry_delay)
-                return None
-
-            # Check if the function is a coroutine function
-            if iscoroutinefunction(func):
-                return async_wrapper
-
-            return wrapper
-
-        return decorator_wrap(func)
+        # Returner wrapperen direkte baseret på funktionstypen
+        return async_wrapper if iscoroutinefunction(func) else wrapper
 
     # ------------------------------------------------------
     def execute(
@@ -250,7 +347,7 @@ class HandleRetries:
         How to call: HandleRetries(retries=3, retry_delay=1).execute(func_self ,(test_func),"Hello world")
         """
         self.func_self = func_self
-        return self.__call__(func)(*args, **kwargs)
+        return self(func)(*args, **kwargs)
 
     # ------------------------------------------------------
     async def async_execute(
@@ -265,7 +362,8 @@ class HandleRetries:
         How to call: await HandleRetries(retries=3, retry_delay=1).async_execute(func_self, (async_test_func),"Hello world")
         """
         self.func_self = func_self
-        return await self.__call__(func)(*args, **kwargs)
+        # return await self.__call__(func)(*args, **kwargs)
+        return await self(func)(*args, **kwargs)
 
 
 # ------------------------------------------------------
@@ -284,7 +382,7 @@ def handle_retries(
     It will retry the method/function if it raises an exception up to a specified number of times, with a specified delay.
     It can be used with both synchronous and asynchronous method/functions.
     It will raise the last exception if the number of retries is reached and raise_last_exception is True.
-    """  # noqa: D401
+    """
 
     if func is None:
         return partial(

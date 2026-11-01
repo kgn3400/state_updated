@@ -28,7 +28,7 @@ class NumberSelectorConfigTranslate:
         step: float | Literal["any"] | None = None,
         unit_of_measurement: str | None = None,
         mode: NumberSelectorMode | None = None,
-    ):
+    ) -> None:
         """Init."""
         self.hass: HomeAssistant = hass
         self.min = min
@@ -39,7 +39,7 @@ class NumberSelectorConfigTranslate:
 
     async def translate(self) -> NumberSelectorConfig:
         """Return a NumberSelectorConfig with the unit of measurement translated."""
-        CONF_KEY = "config.step.unit_of_measurement.data"
+        conf_key = "config.step.unit_of_measurement.data"
 
         tmp_dict: dict[str, Any] = {}
         if self.min is not None:
@@ -51,9 +51,9 @@ class NumberSelectorConfigTranslate:
         if self.unit_of_measurement is not None:
             tmp_trans = await Translate(
                 self.hass,
-                load_only=CONF_KEY,
+                load_only=conf_key,
             ).async_get_localized_str(
-                CONF_KEY + "." + self.unit_of_measurement,
+                conf_key + "." + self.unit_of_measurement,
                 file_name=".json",
                 default=self.unit_of_measurement,
             )

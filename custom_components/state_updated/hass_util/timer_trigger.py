@@ -126,7 +126,6 @@ class TimerTrigger:
         return True
 
     # ------------------------------------------------------------------
-    @callback
     async def async_handle_timer_finished(self, event: Event) -> None:
         """Handle timer finished."""
 

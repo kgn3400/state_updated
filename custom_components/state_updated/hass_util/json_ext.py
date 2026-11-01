@@ -39,13 +39,20 @@ class JsonExt:
         return obj
 
     # ------------------------------------------------------------------
-    def set_global_map_keys(self, global_map_keys: dict = {}):
+    def set_global_map_keys(self, global_map_keys: dict | None = None):
         """Set global map keys."""
+
+        if global_map_keys is None:
+            global_map_keys = {}
+
         self._global_map_keys = global_map_keys
 
     # ------------------------------------------------------------------
-    def change_nested_keys(self, data, map_keys: dict = {}):
+    def change_nested_keys(self, data, map_keys: dict | None = None):
         """Change nested keys."""
+
+        if map_keys is None:
+            map_keys = {}
 
         # ----------------------------------------
         def map_key(check_key: str):
@@ -84,8 +91,11 @@ class JsonExt:
         return data
 
     # ------------------------------------------------------------------
-    def json_str_to_dict(self, json_str: str, map_keys: dict = {}) -> dict:
+    def json_str_to_dict(self, json_str: str, map_keys: dict | None = None) -> dict:
         """Json str to dict."""
+        if map_keys is None:
+            map_keys = {}
+
         tmp_dict = loads(json_str, object_hook=self._decoder)
 
         return self.change_nested_keys(tmp_dict, {**self._global_map_keys, **map_keys})
@@ -96,7 +106,7 @@ class JsonExt:
 class DictToObject:
     """Dict to Object."""
 
-    def __init__(self, dictionary: dict):
+    def __init__(self, dictionary: dict) -> None:
         """Init."""
 
         self.dict_to_object(dictionary)

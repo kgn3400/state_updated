@@ -1,9 +1,9 @@
 """Component api."""
 
-from datetime import UTC, datetime, timedelta
+from datetime import datetime, timedelta
 from typing import Any
 
-from homeassistant.components.sensor import Entity
+# from homeassistant.helpers.entity import Entity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import (
     CONF_ATTRIBUTE,
@@ -14,13 +14,14 @@ from homeassistant.const import (
 from homeassistant.core import HomeAssistant, State
 from homeassistant.exceptions import HomeAssistantError, TemplateError
 from homeassistant.helpers import issue_registry as ir
-from homeassistant.helpers.entity import get_unit_of_measurement
+from homeassistant.helpers.entity import Entity, get_unit_of_measurement
 from homeassistant.helpers.template import Template
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
+from homeassistant.util.dt import naive_now, utcnow
 
 from .const import (
     CONF_CLEAR_UPDATES_AFTER_DURATION,
-    CONF_CLEAR_UPDATES_AFTER_HOURS,
+    # CONF_CLEAR_UPDATES_AFTER_HOURS,
     CONF_LAST_UPDATED,
     CONF_NEW_VALUE,
     CONF_OLD_VALUE,
@@ -51,7 +52,7 @@ class ComponentApi:
         self.entry: ConfigEntry = entry
         self.coordinator: DataUpdateCoordinator
         self.updated: bool = False
-        self.last_updated: datetime = datetime.now(UTC)
+        self.last_updated: datetime = utcnow()
         self.text: str = ""
         self.new_value: Any = ""
         self.old_value: Any = ""
@@ -70,7 +71,8 @@ class ComponentApi:
 
         self.uom: str = self.get_uom()
         self.point_in_time_trigger: PointInUTCTimeTrigger = None
-
+        self.last_error_txt_template: str = ""
+        self.last_error_template: str = ""
         # if entry.options.get(CONF_RESTORE_STATE_AFTER_RESTART, False):
         #     self.updated: bool = entry.options.get(CONF_UPDATED, False)
         # self.last_updated: datetime = datetime.fromisoformat(
@@ -110,23 +112,21 @@ class ComponentApi:
             # if the state has been updated and we have a duration and the last updated time is in the future, start the
 
             self.last_updated: datetime = datetime.fromisoformat(
-                self.entry.options.get(CONF_LAST_UPDATED, datetime.now(UTC).isoformat)
+                self.entry.options.get(CONF_LAST_UPDATED, utcnow().isoformat)
             )
 
             if (
                 self.entry.options.get(CONF_UPDATED, False)
                 and self.last_updated is not None
                 and self.duration is not None
-                and (self.last_updated + self.duration) > datetime.now(UTC)
+                and (self.last_updated + self.duration) > utcnow()
             ):
                 self.point_in_time_trigger.start(
                     point_in_time_UTC=self.last_updated + self.duration
                 )
                 self.updated: bool = self.entry.options.get(CONF_UPDATED, False)
                 self.last_updated: datetime = datetime.fromisoformat(
-                    self.entry.options.get(
-                        CONF_LAST_UPDATED, datetime.now(UTC).isoformat
-                    )
+                    self.entry.options.get(CONF_LAST_UPDATED, utcnow().isoformat)
                 )
                 self.text: str = self.entry.options.get(CONF_TEXT, "")
                 self.new_value: Any = self.entry.options.get(CONF_NEW_VALUE, "")
@@ -134,7 +134,7 @@ class ComponentApi:
                 self.create_text_from_template()
             else:
                 self.updated = False
-                self.last_updated = datetime.now(UTC)
+                self.last_updated = utcnow()
                 self.text = ""
                 self.new_value = ""
                 self.old_value = ""
@@ -168,7 +168,7 @@ class ComponentApi:
 
         if self.new_value != self.old_value:
             self.updated = True
-            self.last_updated = datetime.now(UTC)
+            self.last_updated = utcnow()
             self.create_text_from_template()
 
             self.update_config()
@@ -209,15 +209,15 @@ class ComponentApi:
         """Update."""
 
         return
-        if self.updated and (
-            self.last_updated
-            + timedelta(hours=self.entry.options[CONF_CLEAR_UPDATES_AFTER_HOURS])
-        ) < datetime.now(UTC):
-            self.updated = False
-            self.text = ""
+        # if self.updated and (
+        #     self.last_updated
+        #     + timedelta(hours=self.entry.options[CONF_CLEAR_UPDATES_AFTER_HOURS])
+        # ) < datetime.now(UTC):
+        #     self.updated = False
+        #     self.text = ""
 
-            self.update_config()
-            await self.coordinator.async_refresh()
+        #     self.update_config()
+        #     await self.coordinator.async_refresh()
 
     # ------------------------------------------------------------------
     async def async_config_entry_refresh(self) -> None:
@@ -290,7 +290,7 @@ class ComponentApi:
             ir.async_create_issue(
                 self.hass,
                 DOMAIN,
-                DOMAIN_NAME + datetime.now().isoformat(),
+                DOMAIN_NAME + naive_now().isoformat(),
                 issue_domain=DOMAIN,
                 is_fixable=False,
                 severity=ir.IssueSeverity.WARNING,
