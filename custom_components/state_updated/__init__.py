@@ -46,7 +46,7 @@ type CommonConfigEntry = ConfigEntry[CommonData]
 
 
 # ------------------------------------------------------------------
-async def async_migrate_entry(hass: HomeAssistant, entry: CommonConfigEntry) -> None:
+async def async_migrate_entry(hass: HomeAssistant, entry: CommonConfigEntry) -> bool:
     """Migrate old entry."""
 
     if entry.version < 2:
@@ -82,8 +82,8 @@ async def async_migrate_entry(hass: HomeAssistant, entry: CommonConfigEntry) -> 
 
         LOGGER.info("Migration to version %s successful", entry.version)
 
-    #     return True
-    # return False
+        return True
+    return False
 
 
 # ------------------------------------------------------------------

@@ -4,7 +4,8 @@ from collections.abc import Mapping
 from datetime import timedelta
 from typing import Any, cast
 
-import voluptuous as vol
+# import voluptuous as vol
+import probatio as prob
 
 # from homeassistant.components.sensor import DOMAIN as SENSOR_DOMAIN
 from homeassistant.const import (
@@ -23,7 +24,6 @@ from homeassistant.helpers.schema_config_entry_flow import (
     SchemaFlowFormStep,
     SchemaFlowMenuStep,
 )
-
 from homeassistant.helpers.selector import (
     BooleanSelector,
     DurationSelector,
@@ -31,7 +31,6 @@ from homeassistant.helpers.selector import (
     IconSelector,
     TemplateSelector,
 )
-
 from homeassistant.util.dt import utcnow
 
 from .const import (
@@ -63,15 +62,15 @@ async def _validate_input(
 
 
 # ------------------------------------------------------------------
-async def user_schema(handler: SchemaCommonFlowHandler) -> vol.Schema:
+async def user_schema(handler: SchemaCommonFlowHandler) -> prob.Schema:
     """Return schema for the user step."""
 
-    return vol.Schema(
+    return prob.Schema(
         {
-            vol.Optional(
+            prob.Optional(
                 CONF_NAME,
             ): selector.TextSelector(),
-            vol.Required(
+            prob.Required(
                 CONF_ENTITY_ID,
             ): selector.EntitySelector(
                 selector.EntitySelectorConfig(multiple=False),
@@ -82,7 +81,7 @@ async def user_schema(handler: SchemaCommonFlowHandler) -> vol.Schema:
 
 
 # ------------------------------------------------------------------
-async def init_schema(handler: SchemaCommonFlowHandler) -> vol.Schema:
+async def init_schema(handler: SchemaCommonFlowHandler) -> prob.Schema:
     """Return schema for the init step."""
     options = handler.options.copy()
 
@@ -98,18 +97,18 @@ async def init_schema(handler: SchemaCommonFlowHandler) -> vol.Schema:
         if dev_id is None:
             dev_id = ""
 
-    return vol.Schema(
+    return prob.Schema(
         {
-            vol.Optional(
+            prob.Optional(
                 CONF_ATTRIBUTE,
             ): selector.AttributeSelector(
                 selector.AttributeSelectorConfig(entity_id=options[CONF_ENTITY_ID])
             ),
-            vol.Optional(
+            prob.Optional(
                 CONF_ICON,
             ): IconSelector(),
-            vol.Optional(CONF_DEVICE_ID, default=dev_id): selector.DeviceSelector(),
-            # vol.Required(CONF_CLEAR_UPDATES_AFTER_HOURS, default=25): NumberSelector(
+            prob.Optional(CONF_DEVICE_ID, default=dev_id): selector.DeviceSelector(),
+            # prob.Required(CONF_CLEAR_UPDATES_AFTER_HOURS, default=25): NumberSelector(
             #     NumberSelectorConfig(
             #         min=0.1,
             #         max=999,
@@ -118,7 +117,7 @@ async def init_schema(handler: SchemaCommonFlowHandler) -> vol.Schema:
             #         unit_of_measurement="hours",
             #     )
             # ),
-            vol.Required(
+            prob.Required(
                 CONF_CLEAR_UPDATES_AFTER_DURATION,
                 default={
                     "hours": 25,
@@ -128,7 +127,7 @@ async def init_schema(handler: SchemaCommonFlowHandler) -> vol.Schema:
             ): DurationSelector(
                 DurationSelectorConfig(enable_day=False, allow_negative=False)
             ),
-            vol.Optional(
+            prob.Optional(
                 CONF_TEXT_TEMPLATE,
                 default=options.get(
                     CONF_TEXT_TEMPLATE,
@@ -140,11 +139,11 @@ async def init_schema(handler: SchemaCommonFlowHandler) -> vol.Schema:
                     ),
                 ),
             ): TemplateSelector(),
-            vol.Required(
+            prob.Required(
                 CONF_RESTORE_STATE_AFTER_RESTART, default=False
             ): BooleanSelector(),
-            vol.Required(CONF_SKIP_UNKNOWN, default=False): BooleanSelector(),
-            vol.Required(CONF_SKIP_UNAVAILABLE, default=False): BooleanSelector(),
+            prob.Required(CONF_SKIP_UNKNOWN, default=False): BooleanSelector(),
+            prob.Required(CONF_SKIP_UNAVAILABLE, default=False): BooleanSelector(),
         },
     )
 
